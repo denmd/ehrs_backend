@@ -10,7 +10,11 @@ const medicalRecordSchema = new mongoose.Schema({
     default: Date.now
   },        
   description: String,
-  fileName: String  // or you can use String to store the file path
+  fileName: String ,
+  userId: {
+    type: String,
+    required: true
+  } // or you can use String to store the file path
 });
 
 const MedicalRecord = mongoose.model('MedicalRecord', medicalRecordSchema);
