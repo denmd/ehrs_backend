@@ -1,9 +1,16 @@
-const User = require('../models/User');
+const { Doctor, Patient } = require('../models/User');
 
 const getUserIDFromDatabase = async (req, res, next) => {
   if (req.session.userId) {
     try {
-      const user = await User.findById(req.session.userId);
+      let user;
+      // Check if it's a doctor or a patient
+      if (req.session.userType === 'doctor') {
+        user = await Doctor.findById(req.session.userId);
+      } else if (req.session.userType === 'patient') {
+        user = await Patient.findById(req.session.userId);
+      }
+      
       if (user) {
         req.userID = user._id; // Attach user ID to request object
       }
