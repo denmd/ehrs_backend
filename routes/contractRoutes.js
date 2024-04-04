@@ -2,38 +2,92 @@ const express = require('express');
 const router = express.Router();
 const { Web3 } = require('web3');
 
-// Initialize Web3 with Ganache HTTP provider
-const web3 = new Web3('http://127.0.0.1:7545'); // Assuming Ganache is running on the default port 7545
+const web3 = new Web3('http://127.0.0.1:7545'); 
 
-// Load Contract ABI and Address
-const contractABI = require('../../smartcontracts/build/contracts/AccessControl.json').abi;
-const contractAddress = '0xdb19E2f495a7DEc1B46e3D5e17C3a4526081C0a5'
+const contractABI = require('../../smartcontracts/build/contracts/Upload.json').abi;
+const contractAddress = '0x9E5142bBd72FF6832f890574A5eBf8D6bBA44fC3'
 
-// Instantiate Contract
+console.log("Contract Address:", contractAddress);
 const contract = new web3.eth.Contract(contractABI, contractAddress);
+web3.eth.isSyncing().then(syncing => {
+    if (syncing) {
+        console.log("Node is syncing with the network:");
+        console.log("Current block:", syncing.currentBlock);
+        console.log("Highest block:", syncing.highestBlock);
+        console.log("Starting block:", syncing.startingBlock);
+    } else {
+        console.log("Node is fully synced with the network.");
+    }
+}).catch(error => {
+    console.error("Error:", error);
+});
 
-// Route handler to grant access to a doctor
-router.post('/grantAccess', async (req, res) => {
+router.post('/add', async (req, res) => {
     try {
-        console.log(req.body)
-        const doctorAddress = req.body.doctorAddress;
-        console.log(doctorAddress);
+        const { user, url } = req.body;
         const accounts = await web3.eth.getAccounts();
-        await contract.methods.grantAccess(doctorAddress).send({ from: accounts[0] });
-        res.json({ success: true, message: 'Access granted successfully' });
+        await contract.methods.add(user, url).send({ from: accounts[8] });
+        res.json({ success: true, message: 'URL added successfully' });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
 
-// Route handler to revoke access from a doctor
-router.post('/revokeAccess', async (req, res) => {
+
+router.post('/allow', async (req, res) => {
     try {
-        const { doctorAddress } = req.body;
+        const { user } = req.body;
         const accounts = await web3.eth.getAccounts();
-        await contract.methods.revokeAccess(doctorAddress).send({ from: accounts[0] });
-        res.json({ success: true, message: 'Access revoked successfully' });
+        
+        const gasLimit = 6000000; 
+        await contract.methods.allow(user).send({ from: accounts[8], gas: gasLimit });
+
+        res.json({ success: true, message: 'Access allowed successfully' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+
+
+router.post('/disallow', async (req, res) => {
+    try {
+        const { user } = req.body;
+        const accounts = await web3.eth.getAccounts();
+        await contract.methods.disallow(user).send({ from: accounts[8] });
+        res.json({ success: true, message: 'Access disallowed successfully' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+
+router.post('/display', async (req, res) => {
+    try {
+        const { user } = req.body;
+        const accounts = await web3.eth.getAccounts();
+        if (!user) {
+            return res.status(400).json({ success: false, error: 'User address is required' });
+        }
+
+        const result = await contract.methods.display(user).call({ from: accounts[8] });
+        console.log('Returned result:', result);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+
+router.get('/shareAccess', async (req, res) => {
+    try {
+        const accounts = await web3.eth.getAccounts();
+        const result = await contract.methods.shareAccess().call({ from: accounts[8] });
+        res.json({ success: true, data: result });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });

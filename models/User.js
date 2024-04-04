@@ -5,8 +5,7 @@ const mongoose = require('mongoose');
     password: { type: String, required: true ,unique: true },
     name: { type: String, required: true },
     specialty: { type: String, required: true }, 
-    EthereumAddress:{type: String, required: true }, 
-    doctorId:{ type: String, required: true}
+    EthereumAddress:{type: String, required: true }
   });
 
 const Doctor = mongoose.model('Doctor', doctorSchema);
