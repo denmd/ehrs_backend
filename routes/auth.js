@@ -3,13 +3,20 @@ const bcrypt = require('bcrypt');
 const { Doctor, Patient } = require('../models/User');
 const router = express.Router();
 
+function generateSessionToken() {
+  // Generate a random session token
+  const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+  return token;
+}
+
 
 router.post('/doctor/signup', async (req, res) => {
   try {
-    const { username, password , name, specialty,EthereumAddress } = req.body;
+    const { password , name, specialization, EthereumAddress ,phnno,email} = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newDoctor = new Doctor({ username, password: hashedPassword, name, specialty,EthereumAddress});
+    const newDoctor = new Doctor({  password: hashedPassword, name,specialization ,EthereumAddress,phnno,email});
     const savedDoctor = await newDoctor.save(); 
+
     req.session.userId = savedDoctor._id;
     res.status(201).json({ message: 'Doctor created successfully' });
   } catch (error) {
@@ -21,8 +28,8 @@ router.post('/doctor/signup', async (req, res) => {
 
 router.post('/doctor/signin', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const doctor = await Doctor.findOne({ username });
+    const { name, password } = req.body;
+    const doctor = await Doctor.findOne({ name });
 
     if (!doctor) {
       return res.status(401).json({ error: 'Invalid username or password' });
@@ -32,9 +39,14 @@ router.post('/doctor/signin', async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-    req.session.userId = doctor._id;
-    res.status(200).json({ message: 'Doctor signin successful' });
+    const sessionToken = generateSessionToken();
+    req.session.doctorId = doctor._id;
+    req.session.ethereumAddress = doctor .EthereumAddress;
+    req.session.sessionToken = sessionToken;
+    const userId =  req.session.doctorId
+    res.status(200).json({ message: 'Doctor signin successful',sessionToken,userId });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: 'Error signing in' });
   }
 });
@@ -42,11 +54,18 @@ router.post('/doctor/signin', async (req, res) => {
 
 router.post('/patient/signup', async (req, res) => {
   try {
-    const { username, password, name , age , EthereumAddress } = req.body;
+    const { name, password, age, email, gender, EthereumAddress } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newPatient = new Patient({ username, password: hashedPassword, patientId ,name , age , EthereumAddress });
-    await newPatient.save();
-    req.session.patientId = patientId;
+    const newPatient = new Patient({ 
+      name, 
+      password: hashedPassword,  
+      age, 
+      email, 
+      gender, 
+      EthereumAddress 
+    });
+    const savedPatient = await newPatient.save();
+    req.session.patientId = savedPatient._id;
     res.status(201).json({ message: 'Patient created successfully' });
   } catch (error) {
     console.error('Error creating patient:', error);
@@ -57,8 +76,8 @@ router.post('/patient/signup', async (req, res) => {
 
 router.post('/patient/signin', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const patient = await Patient.findOne({ username });
+    const { name, password } = req.body;
+    const patient = await Patient.findOne({ name });
 
     if (!patient) {
       return res.status(401).json({ error: 'Invalid username or password' });
@@ -68,26 +87,33 @@ router.post('/patient/signin', async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-    req.session.patientId = patient.patientId;
-    res.status(200).json({ message: 'Patient signin successful' });
+    const sessionToken = generateSessionToken();
+    req.session.patientId = patient._id;
+    req.session.ethereumAddress = patient.EthereumAddress;
+    req.session.sessionToken = sessionToken;
+    const userId=req.session.patientId
+    
+    res.status(200).json({ message: 'Patient signin successful',sessionToken,userId });
   } catch (error) {
+    console.error('Error signing in:', error);
     res.status(500).json({ error: 'Error signing in' });
   }
 });
 router.get('/test', (req, res) => {
   try {
-    // Retrieve user ID from session
-    const userId = req.session.userId;
-
-    // If user ID exists in session, respond with it
-    if (userId) {
-      res.status(200).json({ userId });
+   
+    console.log(req.session)
+    const userId = req.session.patientId;
+    const address=req.session.ethereumAddress
+  
+    if (userId && address) {
+      res.status(200).json({ userId ,address});
     } else {
-      // If user ID does not exist in session, respond with error
+    
       res.status(404).json({ error: 'User ID not found in session' });
     }
   } catch (error) {
-    // If any error occurs, respond with error status
+   
     console.error('Error retrieving user ID from session:', error);
     res.status(500).json({ error: 'Error retrieving user ID from session' });
   }

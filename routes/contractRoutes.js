@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { Web3 } = require('web3');
+const Patient = require('../models/User').Patient;
+const doctor = require('../models/User').Doctor;
+const MyDoctor=require('../models/Mydoctor');
+const axios = require('axios');
+
 
 const web3 = new Web3('http://127.0.0.1:7545'); 
 
 const contractABI = require('../../smartcontracts/build/contracts/Upload.json').abi;
-const contractAddress = '0x9E5142bBd72FF6832f890574A5eBf8D6bBA44fC3'
+const contractAddress = '0xff9eDf00443ed1CB1CaB4951aB73B5C05180eef3'
 
 console.log("Contract Address:", contractAddress);
 const contract = new web3.eth.Contract(contractABI, contractAddress);
@@ -24,9 +29,9 @@ web3.eth.isSyncing().then(syncing => {
 
 router.post('/add', async (req, res) => {
     try {
+        console.log('heyy')
         const { user, url } = req.body;
-        const accounts = await web3.eth.getAccounts();
-        await contract.methods.add(user, url).send({ from: accounts[8] });
+        await contract.methods.add(user, url).send({ from: user });
         res.json({ success: true, message: 'URL added successfully' });
     } catch (error) {
         console.error('Error:', error);
@@ -37,12 +42,30 @@ router.post('/add', async (req, res) => {
 
 router.post('/allow', async (req, res) => {
     try {
+      
         const { user } = req.body;
-        const accounts = await web3.eth.getAccounts();
+        console.log(user)
+        const userId=req.headers['x-userid'];
+        console.log(userId)
+        const patient = await Patient.findById(userId);
+        if (!patient) {
+            return res.status(404).json({ success: false, error: 'Patient not found' });
+        }
+        const owner=patient.EthereumAddress
         
         const gasLimit = 6000000; 
-        await contract.methods.allow(user).send({ from: accounts[8], gas: gasLimit });
+        await contract.methods.allow(user).send({ from: owner, gas: gasLimit });
+        const updatedDoctor = await MyDoctor.findOneAndUpdate(
+            { userId,EthereumAddress: user }, 
+            { hasAccess: true },
+            { new: true } 
+        );
 
+       
+
+        if (!updatedDoctor) {
+            return res.status(404).json({ success: false, error: 'Doctor not found' });
+        }
         res.json({ success: true, message: 'Access allowed successfully' });
     } catch (error) {
         console.error('Error:', error);
@@ -54,9 +77,19 @@ router.post('/allow', async (req, res) => {
 
 router.post('/disallow', async (req, res) => {
     try {
+        console.log('readyy1')
         const { user } = req.body;
-        const accounts = await web3.eth.getAccounts();
-        await contract.methods.disallow(user).send({ from: accounts[8] });
+        const userId=req.headers['x-userid'];
+        const patient = await Patient.findById(userId);
+        if (!patient) {
+            return res.status(404).json({ success: false, error: 'Patient not found' });
+        }
+        const owner=patient.EthereumAddress
+        
+        await contract.methods.disallow(user).send({ from: owner });
+        
+        await MyDoctor.updateOne({ userId,EthereumAddress: user }, { hasAccess: false });
+        console.log('readyy')
         res.json({ success: true, message: 'Access disallowed successfully' });
     } catch (error) {
         console.error('Error:', error);
@@ -67,15 +100,31 @@ router.post('/disallow', async (req, res) => {
 
 router.post('/display', async (req, res) => {
     try {
-        const { user } = req.body;
-        const accounts = await web3.eth.getAccounts();
+        const { owner } = req.body;
+         const userId=req.headers['x-userid'];
+         const Doctor = await doctor.findById(userId);
+         const patient = await Patient.findById(userId);
+         let user;
+         if (Doctor ) {
+             user = Doctor.EthereumAddress
+         }
+         else if(patient){
+             user = patient.EthereumAddress
+         }
+        
         if (!user) {
             return res.status(400).json({ success: false, error: 'User address is required' });
         }
 
-        const result = await contract.methods.display(user).call({ from: accounts[8] });
+        const result = await contract.methods.display(user).call({ from: owner});
         console.log('Returned result:', result);
-        res.json({ success: true, data: result });
+        const patientId = result[0];
+
+        const filesResponse = await axios.get(`http://localhost:8000/medical-record/files/${patientId}`);
+        const filesData = filesResponse.data;
+
+        res.json({ success: true, data: filesData });
+       
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
@@ -86,7 +135,7 @@ router.post('/display', async (req, res) => {
 router.get('/shareAccess', async (req, res) => {
     try {
         const accounts = await web3.eth.getAccounts();
-        const result = await contract.methods.shareAccess().call({ from: accounts[8] });
+        const result = await contract.methods.shareAccess().call({ from: accounts[5] });
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Error:', error);
