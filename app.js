@@ -26,7 +26,9 @@ app.use(session({
 app.use(bodyParser.json());
 mongoose.connect(mongodbURI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  ssl: true,
+  tls: true
 
 });
 const db = mongoose.connection;
