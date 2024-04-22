@@ -42,6 +42,10 @@ app.use('/medical-record', medicalRecordsRouter);
 app.use('/contractRoutes', smartcontractRouter); 
 app.use('/patientlist',Patientlistrouter)
 
+app.get("/api/",(req, res)=>{
+  res.status(200).json({message: "API Alive"})
+})
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://127.0.0.1:${port}`);
