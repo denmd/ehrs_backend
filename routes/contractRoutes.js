@@ -9,7 +9,7 @@ const axios = require('axios');
 
 const web3 = new Web3('http://127.0.0.1:7545'); 
 
-const contractABI = require('../../smartcontracts/build/contracts/Upload.json').abi;
+const contractABI = require('../smartcontracts/build/contracts/Upload.json').abi;
 const contractAddress = '0xff9eDf00443ed1CB1CaB4951aB73B5C05180eef3'
 
 console.log("Contract Address:", contractAddress);
