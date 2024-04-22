@@ -28,7 +28,8 @@ mongoose.connect(mongodbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   ssl: true,
-  tls: true
+  tls: true,
+  tlsAllowInvalidCertificates: true
 
 });
 const db = mongoose.connection;
