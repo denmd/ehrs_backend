@@ -10,7 +10,7 @@ const axios = require('axios');
 const web3 = new Web3('http://127.0.0.1:7545'); 
 
 const contractABI = require('../smartcontracts/build/contracts/Upload.json').abi;
-const contractAddress = '0xff9eDf00443ed1CB1CaB4951aB73B5C05180eef3'
+const contractAddress = '0xcc0B5894031e266e1896a1ee46515099Edc2e220'
 
 console.log("Contract Address:", contractAddress);
 const contract = new web3.eth.Contract(contractABI, contractAddress);
@@ -61,11 +61,11 @@ router.post('/allow', async (req, res) => {
             { new: true } 
         );
 
-       
-
         if (!updatedDoctor) {
             return res.status(404).json({ success: false, error: 'Doctor not found' });
         }
+
+        
         res.json({ success: true, message: 'Access allowed successfully' });
     } catch (error) {
         console.error('Error:', error);
@@ -116,13 +116,12 @@ router.post('/display', async (req, res) => {
             return res.status(400).json({ success: false, error: 'User address is required' });
         }
 
-        const result = await contract.methods.display(user).call({ from: owner});
+        const result = await contract.methods.display(owner).call({ from: user});
         console.log('Returned result:', result);
         const patientId = result[0];
-
-        const filesResponse = await axios.get(`http://localhost:8000/medical-record/files/${patientId}`);
+       
+        const filesResponse = await axios.get(`https://ehrs-backend.onrender.com/medical-record/files/${patientId}`);
         const filesData = filesResponse.data;
-
         res.json({ success: true, data: filesData });
        
     } catch (error) {

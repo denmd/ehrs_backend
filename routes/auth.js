@@ -4,7 +4,7 @@ const { Doctor, Patient } = require('../models/User');
 const router = express.Router();
 
 function generateSessionToken() {
-  // Generate a random session token
+ 
   const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
   return token;
 }
@@ -28,8 +28,8 @@ router.post('/doctor/signup', async (req, res) => {
 
 router.post('/doctor/signin', async (req, res) => {
   try {
-    const { name, password } = req.body;
-    const doctor = await Doctor.findOne({ name });
+    const { email, password } = req.body;
+    const doctor = await Doctor.findOne({ email });
 
     if (!doctor) {
       return res.status(401).json({ error: 'Invalid username or password' });
@@ -76,16 +76,16 @@ router.post('/patient/signup', async (req, res) => {
 
 router.post('/patient/signin', async (req, res) => {
   try {
-    const { name, password } = req.body;
-    const patient = await Patient.findOne({ name });
+    const { email, password } = req.body;
+    const patient = await Patient.findOne({ email });
 
     if (!patient) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const passwordMatch = await bcrypt.compare(password, patient.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     const sessionToken = generateSessionToken();
     req.session.patientId = patient._id;
@@ -99,6 +99,7 @@ router.post('/patient/signin', async (req, res) => {
     res.status(500).json({ error: 'Error signing in' });
   }
 });
+
 router.get('/test', (req, res) => {
   try {
    
