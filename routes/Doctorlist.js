@@ -44,5 +44,19 @@ router.get('/mydoctors', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
+router.post('/updateHasAccess', async (req, res) => {
+  const { EthereumAddress, hasAccess } = req.body;
+  const userId = req.headers['x-userid'];
+  try {
+    const doctor = await MyDoctor.findOneAndUpdate(
+      { EthereumAddress, userId },
+      { hasAccess },
+      { new: true }
+    );
+    res.status(200).json(doctor);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server Error' });
+  }
+});
 module.exports = router;
