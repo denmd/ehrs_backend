@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
     email: { type: String, required: true, unique: true },
     specialization: { type: String, required: true }, 
     EthereumAddress:{type: String, required: true },
-    phnno: { type: String, required: true } 
+    phnno: { type: Number, required: true } 
   });
 
 const Doctor = mongoose.model('Doctor', doctorSchema);
