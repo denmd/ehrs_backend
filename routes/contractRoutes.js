@@ -7,10 +7,11 @@ const MyDoctor=require('../models/Mydoctor');
 const axios = require('axios');
 
 
-const web3 = new Web3('http://127.0.0.1:7545'); 
+const provider = new Web3.providers.HttpProvider('https://rpc-amoy.polygon.technology/'); // Use your Amoy RPC URL here
+const web3 = new Web3(provider);
 
-const contractABI = require('../smartcontracts/build/contracts/Upload.json').abi;
-const contractAddress = '0xcc0B5894031e266e1896a1ee46515099Edc2e220'
+const contractABI = require('../models/deploy/Upload.json').abi;
+const contractAddress = '0x205CAB2b1ADC1af2Eca5Efb2f421F182ef4d2709'
 
 console.log("Contract Address:", contractAddress);
 const contract = new web3.eth.Contract(contractABI, contractAddress);
