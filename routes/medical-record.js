@@ -35,7 +35,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
    //console.log(ethereumAddress)
    //console.log('heyy')
     //await axios.post('http://localhost:8000/contractRoutes/add', { user: ethereumAddress, url: patientId });
-    res.status(201).send('File uploaded successfully.', patientId);
+    res.status(201).send({ message: 'File uploaded successfully.', patientId: patientId });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error uploading the file.');
