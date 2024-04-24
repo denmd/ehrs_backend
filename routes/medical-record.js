@@ -30,12 +30,12 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     });
 
     await file.save();
-    const patient = await Patient.findOne({ _id: patientId });
-    const ethereumAddress = patient.EthereumAddress;
-   console.log(ethereumAddress)
-   console.log('heyy')
-    await axios.post('http://localhost:8000/contractRoutes/add', { user: ethereumAddress, url: patientId });
-    res.status(201).send('File uploaded successfully.');
+    //const patient = await Patient.findOne({ _id: patientId });
+    //const ethereumAddress = patient.EthereumAddress;
+   //console.log(ethereumAddress)
+   //console.log('heyy')
+    //await axios.post('http://localhost:8000/contractRoutes/add', { user: ethereumAddress, url: patientId });
+    res.status(201).send('File uploaded successfully.', patientId);
   } catch (error) {
     console.error(error);
     res.status(500).send('Error uploading the file.');
