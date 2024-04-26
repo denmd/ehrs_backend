@@ -124,7 +124,7 @@ router.post('/check-account', async (req, res) => {
   try {
     const { address, userId } = req.body;
 
-    console.log(account)
+    console.log(address)
    console.log(userId)
    
 
