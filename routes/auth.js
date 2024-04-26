@@ -126,7 +126,7 @@ router.post('/check-account', async (req, res) => {
 
     const patient = await Patient.findOne({ EthereumAddress: account, userId });
 
-    res.json({ exists: !!patient });
+    res.json({ exists: patient });
   } catch (error) {
     console.error('Error checking account:', error);
     res.status(500).json({ error: 'Internal server error' });
