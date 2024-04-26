@@ -122,13 +122,13 @@ router.get('/test', (req, res) => {
 
 router.post('/check-account', async (req, res) => {
   try {
-    const { account, userId } = req.body;
+    const { address, userId } = req.body;
 
     console.log(account)
    console.log(userId)
    
 
-    const patient = await Patient.findOne({ EthereumAddress: account,  _id: userId });
+    const patient = await Patient.findOne({ EthereumAddress: address,  _id: userId });
     res.json({ exists: patient });
   } catch (error) {
     console.error('Error checking account:', error);
