@@ -10,7 +10,7 @@ router.get('/doctors', async (req, res) => {
     const regex = new RegExp(query, 'i');
     const userId = req.headers['x-userid'];
     
-    const doctor = await Doctor.findOne({ name: regex });
+    const doctor = await Doctor.findOne({ email: regex });
 
     if (doctor) {
     
